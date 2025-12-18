@@ -1,0 +1,56 @@
+We are going to go to the basics and build a simple web server from NodeJS
+To do this, I will learn the structure of HTTP requests and responses and get an intro 
+to Node's Stream API 
+I will start by reviewing Node's built-in http module. Then, I will study the general 
+structure of an HTTP request and response. I will then use Node's built in net module
+to create a low-level TCP server and try to make a useable web server out of it 
+
+A quick look at Node's built-in HTTP module
+
+NodeJS comes with a simple HTTP server built in that allows us to listen on an arbitrary
+port and provide a callback function that will be invoked on every incoming request 
+The callback will receive two arguments. 
+1. A request object 
+2. A response object 
+
+The request object will be filled with useful properties about the request and the 
+Response object will be used to send a response to the client
+
+Receiving and parsing an HTTP request 
+
+NodeJS provides the built-in net module to create a streaming TCP server. 
+Streaming refers to the fact that the server can send and receive data over time, using
+Node's Stream API 
+
+Where the http server emitted a request event with Request and Response objects, 
+the TCP server will emit a connection event with a Socket object 
+Socket objects are Duplex Streams. In short, this means that they can both be read and 
+written to. 
+
+If we make an HTTP request to the TCP server, reading from the Socket will give us the text
+of the request. There are two ways to read from a readable stream:
+1. Subscribing to its data event, 
+2. Calling its .read() method
+
+By subscribing to its data event, we can use Linux terminal commands such as:
+1. curl -v localhost:8080/some/url
+2. curl -v -XPOST -d'hello=world' localhost:8080/some/url 
+Which outputs a message to the terminal reading the server data
+
+Often, the header part of a request is sufficient to start processing the request. Since we are writing a generic web server, we have to find a way to stop receiving request data from the socket as soon as we reach the string \r\n\r\n in the input, which is more easily
+done using the .read() method of the socket, since we can control when to stop pulling 
+data from the stream.
+
+The code in nodeDataEventStop.js is a bit longer because I needed some logic to decide when 
+to stop reading from the stream. That allowed me to separate the header from the body. 
+
+If we put everything back together, we have webServer.js which exposes a function 
+createWebServer(requestHandler) which accepts a handler of the form (req, res) => void 
+just like Node's basic web server.
+
+Conclusion
+
+By using some lower-level building blocks such as net, Stream, and Buffer, we can create a 
+rudimentary HTTP server based on a TCP server and some parsing logic. In the process, 
+we learned a bit about how HTTP requests and responses work, as well as the basics of 
+readable and writable streams and buffers. 
